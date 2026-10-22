@@ -12,11 +12,9 @@ so the database can be moved to a NetBox without this plugin as is.
 
 - **Each user:** *Preferences* (user menu) → *Plugins* → **Date format**.
   "System default" follows the default below.
-- **Default for everyone:** *Admin → System → Configuration* → edit →
-  **Default date format**. Saved with NetBox's other configuration
-  revisions.
-- **Fallback:** the `date_format` plugin setting (default `d.m.Y`), used
-  when neither of the above is set.
+- **Default for everyone:** the `date_format` setting in the plugin's
+  `PLUGINS_CONFIG` block, or the `NETBOX_LOCAL_DATE_FORMAT` environment
+  variable. Without either, `d.m.Y`.
 
 Choices: `31.12.2026`, `2026-12-31`, `31/12/2026`, `12/31/2026`,
 `31-12-2026`, `2026/12/31`. Times stay `HH:MM:SS`.
@@ -42,10 +40,10 @@ the full date.
 
 ## Where the settings are stored
 
-Both settings live in tables NetBox already has: your choice in your user
-preferences (`plugins.netbox_local_dateformat.date_format`), the default
-in the configuration revision (`LOCAL_DATE_FORMAT`). A NetBox without the
-plugin ignores both.
+Each user's choice is saved in their NetBox user preferences
+(`plugins.netbox_local_dateformat.date_format`), a table NetBox already
+has. The default lives in your configuration or environment, not in the
+database. A NetBox without the plugin ignores the saved preference.
 
 ## Requirements
 
@@ -68,8 +66,9 @@ Add it to your NetBox configuration:
 ```python
 PLUGINS = ["netbox_local_dateformat"]
 
-# Optional fallback, used when no default is set under Admin > System >
-# Configuration: any Django date format string (default "d.m.Y").
+# Optional default for users who haven't picked a format: any Django
+# date format string. Without it, the NETBOX_LOCAL_DATE_FORMAT environment
+# variable is used, then "d.m.Y".
 PLUGINS_CONFIG = {
     "netbox_local_dateformat": {"date_format": "d.m.Y"},
 }

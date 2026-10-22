@@ -9,16 +9,14 @@ is parsed, stored or exported. DEVELOPER.md lists every patched function.
 import datetime
 import zoneinfo
 
-from django import forms
 from django.conf import settings
 from django.contrib.humanize.templatetags.humanize import naturalday, naturaltime
 from django.utils import formats as dj_formats
 from django.utils.dateformat import format as dj_format
 from django.utils.safestring import mark_safe
 from django.utils.timezone import localtime
-from django.utils.translation import gettext_lazy as _
 
-from .formats import CONFIG_PARAM, DATE_FORMATS, get_date_format, placeholder, timestamp_date_format
+from .formats import get_date_format, placeholder, timestamp_date_format
 
 # NetBox's footer clock: {% now 'Y-m-d H:i:s T' %} in base/layout.html.
 FOOTER_FORMAT = 'Y-m-d H:i:s T'
@@ -30,7 +28,6 @@ def apply():
     patch_django_formats()
     patch_now_tag()
     patch_date_pickers()
-    add_system_default()
 
 
 def _date(value):
@@ -178,52 +175,3 @@ def patch_date_pickers():
 
     picker(widgets.DatePicker, 'Y-m-d', '')
     picker(widgets.DateTimePicker, 'Y-m-d H:i:S', ' H:i:S')
-
-
-#
-# System default: a field on NetBox's own configuration page
-#
-
-def add_system_default():
-    """
-    Add LOCAL_DATE_FORMAT to NetBox's dynamic configuration parameters, so
-    it shows on Admin > System > Configuration and is saved in NetBox's
-    existing ConfigRevision data. A NetBox without this plugin ignores the
-    extra key, so the database can be moved as is.
-    """
-    import netbox.config
-    from netbox.config.parameters import ConfigParam
-
-    if any(p.name == CONFIG_PARAM for p in netbox.config.PARAMS):
-        return
-    param = ConfigParam(
-        name=CONFIG_PARAM,
-        label=_('Default date format'),
-        default='',
-        description=_(
-            'How dates are shown to users who haven\'t picked their own format '
-            '(Local date format plugin). Stored data stays ISO 8601.'
-        ),
-        field=forms.ChoiceField,
-        field_kwargs={'choices': (('', '---------'), *DATE_FORMATS)},
-    )
-    params = (*netbox.config.PARAMS, param)
-
-    # Everything that imported PARAMS by name.
-    netbox.config.PARAMS = params
-    from core import views as core_views
-    from core.forms import model_forms
-    from utilities.forms.rendering import FieldSet
-    core_views.PARAMS = params
-    model_forms.PARAMS = params
-
-    form = model_forms.ConfigRevisionForm
-    if CONFIG_PARAM not in form.base_fields:
-        field = param.field(required=False, label=param.label, help_text=param.description, **param.field_kwargs)
-        form.base_fields[CONFIG_PARAM] = field
-        form.declared_fields[CONFIG_PARAM] = field
-    # Own section, just before the revision comment.
-    form.fieldsets = (*form.fieldsets[:-1], FieldSet(CONFIG_PARAM, name=_('Date Format')), form.fieldsets[-1])
-
-    # A config loaded before this ran doesn't know the new default yet.
-    netbox.config.clear_config()

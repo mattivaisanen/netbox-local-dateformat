@@ -9,9 +9,10 @@ the same conventions as mattivaisanen/netbox-change-approval.
   see. Never write or convert stored dates, never change parsing, exports
   or the API, and never add models or migrations: the database must move
   to another NetBox (without this plugin) as is. Settings go in NetBox's
-  existing storage (user preferences, configuration revisions).
+  existing storage (user preferences) or configuration.
 - **Format choice:** each user picks their own (Preferences); the default
-  is set under Admin → System → Configuration. Applies everywhere dates
+  comes from `PLUGINS_CONFIG` `date_format` or the
+  `NETBOX_LOCAL_DATE_FORMAT` env var. Applies everywhere dates
   are shown, forms included. Timestamps are shortened (weekday for the
   past week, no year this year); plain dates are not.
 - **Matti's NetBox:** Matti restarts it themselves. After pushing, pull

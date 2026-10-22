@@ -1,8 +1,10 @@
+import os
+from unittest import mock
+
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from core.models import ConfigRevision
 import datetime
 
 from circuits.models import Circuit, CircuitType, Provider
@@ -38,8 +40,9 @@ class FormatChoiceTests(TestCase):
         clear_config()
 
     def set_system_default(self, fmt):
-        ConfigRevision.objects.create(data={'LOCAL_DATE_FORMAT': fmt}).activate()
-        clear_config()
+        patcher = override_settings(PLUGINS_CONFIG={'netbox_local_dateformat': {'date_format': fmt}})
+        patcher.enable()
+        self.addCleanup(patcher.disable)
 
     def set_user_format(self, fmt):
         self.user.config.set(PREF, fmt, commit=True)
@@ -60,6 +63,15 @@ class FormatChoiceTests(TestCase):
         self.set_system_default('d/m/Y')
         self.set_user_format('Y/m/d')
         self.assertContains(self.page(), self.today.strftime('%Y/%m/%d'))
+
+    def test_environment_variable(self):
+        with mock.patch.dict(os.environ, {'NETBOX_LOCAL_DATE_FORMAT': 'Y/m/d'}):
+            self.assertContains(self.page(), self.today.strftime('%Y/%m/%d'))
+
+    def test_plugin_setting_wins_over_environment_variable(self):
+        self.set_system_default('d/m/Y')
+        with mock.patch.dict(os.environ, {'NETBOX_LOCAL_DATE_FORMAT': 'Y/m/d'}):
+            self.assertContains(self.page(), self.today.strftime('%d/%m/%Y'))
 
     def test_user_system_default_choice(self):
         self.set_system_default('m/d/Y')
@@ -98,13 +110,3 @@ class SettingsPageTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.user.config.refresh_from_db()
         self.assertEqual(self.user.config.data['plugins']['netbox_local_dateformat']['date_format'], 'm/d/Y')
-
-    def test_system_configuration_page(self):
-        url = reverse('core:configrevision_add')
-        response = self.client.get(url)
-        self.assertContains(response, 'LOCAL_DATE_FORMAT')
-        self.assertContains(response, 'Default date format')
-        response = self.client.post(url, {'LOCAL_DATE_FORMAT': 'Y-m-d', 'comment': 'test'})
-        self.assertEqual(response.status_code, 302)
-        revision = ConfigRevision.objects.latest('pk')
-        self.assertEqual(revision.data['LOCAL_DATE_FORMAT'], 'Y-m-d')

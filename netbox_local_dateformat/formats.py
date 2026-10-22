@@ -7,21 +7,21 @@ The format is looked up in this order:
    UserConfig data under plugins.netbox_local_dateformat.date_format).
 2. NetBox's DEFAULT_USER_PREFERENCES, if it sets that same key (UserConfig.get
    does this for us).
-3. The system default, LOCAL_DATE_FORMAT, set under Admin > System >
-   Configuration (stored in NetBox's existing ConfigRevision data).
-4. The date_format plugin setting in configuration.py.
+3. The date_format setting in the plugin's PLUGINS_CONFIG block.
+4. The NETBOX_LOCAL_DATE_FORMAT environment variable.
 5. d.m.Y.
 
 Only what the user sees changes. Nothing here writes to the database.
 """
+import os
+
 from django.conf import settings
 
-from netbox.config import get_config
 from netbox.context import current_request
 
 PLUGIN_NAME = 'netbox_local_dateformat'
 PREFERENCE = f'plugins.{PLUGIN_NAME}.date_format'
-CONFIG_PARAM = 'LOCAL_DATE_FORMAT'
+ENV_VAR = 'NETBOX_LOCAL_DATE_FORMAT'
 FALLBACK = 'd.m.Y'
 
 # Django date format strings. Their d, m and Y tokens mean the same thing in
@@ -51,11 +51,8 @@ def user_format(request=None):
 
 def system_format():
     """The default for users who haven't picked a format."""
-    value = getattr(get_config(), CONFIG_PARAM, '') or ''
-    if value:
-        return value
     plugin_config = getattr(settings, 'PLUGINS_CONFIG', {}).get(PLUGIN_NAME, {})
-    return plugin_config.get('date_format') or FALLBACK
+    return plugin_config.get('date_format') or os.environ.get(ENV_VAR) or FALLBACK
 
 
 def get_date_format(request=None):

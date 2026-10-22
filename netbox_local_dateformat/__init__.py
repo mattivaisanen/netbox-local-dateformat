@@ -12,12 +12,14 @@ class LocalDateFormatConfig(PluginConfig):
     name = 'netbox_local_dateformat'
     verbose_name = 'Local date format'
     description = 'Show dates in the web UI in each user\'s own format.'
-    version = '0.1.0'
+    version = '0.2.0'
     author = 'Matti'
     base_url = 'local-dateformat'
     # Only claim what CI tests (.github/workflows/test.yml).
     min_version = '4.7.0'
-    default_settings = {'date_format': 'd.m.Y'}
+    # None: fall back to the NETBOX_LOCAL_DATE_FORMAT environment variable,
+    # then d.m.Y (see formats.py).
+    default_settings = {'date_format': None}
     # Loaded from preferences.preferences (NetBox's default resource path).
     user_preferences = 'preferences.preferences'
 

@@ -15,8 +15,8 @@ table is a different plugin.
 `get_date_format()` reads the current request from NetBox's
 `netbox.context.current_request` and returns, in order: the user's
 preference, NetBox's `DEFAULT_USER_PREFERENCES` (via `UserConfig.get`),
-the `LOCAL_DATE_FORMAT` system default, the `date_format` plugin setting,
-then `d.m.Y`. `user.config` and `get_config()` are cached per request, so
+the `date_format` plugin setting, the `NETBOX_LOCAL_DATE_FORMAT`
+environment variable, then `d.m.Y`. `user.config` and `get_config()` are cached per request, so
 this costs no queries per row.
 
 ## Shorter timestamps
@@ -33,15 +33,10 @@ NetBox's relative time.
 - **User preference:** `PluginConfig.user_preferences` points at
   `preferences.py`. This is NetBox's documented hook; the value is saved in
   the existing `UserConfig.data` JSON.
-- **System default:** NetBox has no hook for plugins to add configuration
-  parameters, so `patches.add_system_default()` appends a `ConfigParam` to
-  NetBox's `PARAMS` tuple and rebinds it where it was imported by name
-  (`netbox.config`, `core.forms.model_forms`, `core.views`), then adds the
-  field and a "Date Format" fieldset to `ConfigRevisionForm`. The value is
-  saved in the existing `ConfigRevision.data` JSON. NetBox only reads
-  parameters it knows by name, so the extra key is ignored without the
-  plugin. It is not shown on the read-only System page (that template
-  lists parameters by hand).
+- **Default:** `PLUGINS_CONFIG` or the `NETBOX_LOCAL_DATE_FORMAT`
+  environment variable, never the database. (0.1.0 patched a field into
+  NetBox's configuration revision form; it didn't show reliably and was
+  removed in 0.2.0.)
 
 ## What is patched (`patches.py`)
 
