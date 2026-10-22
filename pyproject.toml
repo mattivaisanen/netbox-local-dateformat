@@ -9,6 +9,10 @@ description = "Local tweak: show dates in NetBox's web UI as dd.mm.yyyy instead 
 requires-python = ">=3.10"
 license = "Apache-2.0"
 readme = "README.md"
+authors = [{ name = "Matti" }]
+# No runtime dependencies: NetBox provides Django. NetBox versions are
+# enforced at runtime by min_version in netbox_local_dateformat/__init__.py.
+dependencies = []
 
 [tool.setuptools.packages.find]
 include = ["netbox_local_dateformat*"]

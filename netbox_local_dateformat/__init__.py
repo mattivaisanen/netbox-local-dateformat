@@ -30,7 +30,9 @@ class LocalDateFormatConfig(PluginConfig):
     description = 'Show dates in the web UI as dd.mm.yyyy.'
     version = '0.1.0'
     base_url = 'local-dateformat'
-    min_version = '4.3.0'
+    author = 'Matti'
+    # Only claim what CI tests (.github/workflows/test.yml).
+    min_version = '4.7.0'
     default_settings = {'date_format': 'd.m.Y'}
 
     def ready(self):
