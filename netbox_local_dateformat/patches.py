@@ -18,7 +18,7 @@ from django.utils.safestring import mark_safe
 from django.utils.timezone import localtime
 from django.utils.translation import gettext_lazy as _
 
-from .formats import CONFIG_PARAM, DATE_FORMATS, get_date_format, placeholder
+from .formats import CONFIG_PARAM, DATE_FORMATS, get_date_format, placeholder, timestamp_date_format
 
 # NetBox's footer clock: {% now 'Y-m-d H:i:s T' %} in base/layout.html.
 FOOTER_FORMAT = 'Y-m-d H:i:s T'
@@ -37,6 +37,16 @@ def _date(value):
     return dj_format(value, get_date_format())
 
 
+def _timestamp_date(value):
+    """Date part of an aware or naive datetime, shortened (see formats.py)."""
+    if value.tzinfo:
+        value = localtime(value)
+        now = localtime()
+    else:
+        now = datetime.datetime.now()
+    return dj_format(value, timestamp_date_format(value, now))
+
+
 #
 # isodate / isodatetime template filters (detail pages, changelog, journal)
 #
@@ -49,8 +59,7 @@ def patch_template_filters():
         if type(value) is datetime.date:
             return mark_safe(f'<span title="{naturalday(value)}">{_date(value)}</span>')
         if type(value) is datetime.datetime:
-            local_value = localtime(value) if value.tzinfo else value
-            return mark_safe(f'<span title="{naturaltime(value)}">{_date(local_value.date())}</span>')
+            return mark_safe(f'<span title="{naturaltime(value)}">{_timestamp_date(value)}</span>')
         return ''
 
     def isodatetime(value, spec='seconds'):
@@ -82,7 +91,7 @@ def patch_table_columns():
         if not value:
             return None
         value = value.astimezone(zoneinfo.ZoneInfo(settings.TIME_ZONE))
-        return f"{_date(value.date())} {value.time().isoformat(timespec=self.timespec)}"
+        return f"{_timestamp_date(value)} {value.time().isoformat(timespec=self.timespec)}"
 
     # render() only: value() is what CSV export uses, and it stays ISO.
     columns.DateColumn.render = date_render

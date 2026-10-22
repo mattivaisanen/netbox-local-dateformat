@@ -21,6 +21,12 @@ so the database can be moved to a NetBox without this plugin as is.
 Choices: `31.12.2026`, `2026-12-31`, `31/12/2026`, `12/31/2026`,
 `31-12-2026`, `2026/12/31`. Times stay `HH:MM:SS`.
 
+Timestamps (a date and a time, like "created" or changelog times) are
+shortened: within the past week they show the weekday (`Thu 14:55:07`),
+earlier this year they leave out the year (`15.10. 14:55:07`). Hover for
+the relative time. Plain dates, like a circuit's end date, always show
+the full date.
+
 ## What changes
 
 - Dates in object lists, detail pages, the changelog and journal

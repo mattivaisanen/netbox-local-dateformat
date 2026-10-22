@@ -1,10 +1,11 @@
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from django.utils import timezone
 
 from core.models import ConfigRevision
-from dcim.models import Site
+import datetime
+
+from circuits.models import Circuit, CircuitType, Provider
 from netbox.config import clear_config
 from users.models import User
 
@@ -18,14 +19,18 @@ class FormatChoiceTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_superuser('admin', 'admin@example.com', 'x')
-        cls.site = Site.objects.create(name='Site 1', slug='site-1')
+        provider = Provider.objects.create(name='Provider 1', slug='provider-1')
+        circuit_type = CircuitType.objects.create(name='Type 1', slug='type-1')
+        cls.circuit = Circuit.objects.create(
+            cid='C1', provider=provider, type=circuit_type, termination_date=datetime.date(2026, 10, 22),
+        )
 
     def setUp(self):
         cache.delete('config')
         cache.delete('config_version')
         clear_config()
         self.client.force_login(self.user)
-        self.today = timezone.now().date()
+        self.today = datetime.date(2026, 10, 22)  # the circuit's end date
 
     def tearDown(self):
         cache.delete('config')
@@ -40,7 +45,7 @@ class FormatChoiceTests(TestCase):
         self.user.config.set(PREF, fmt, commit=True)
 
     def page(self):
-        response = self.client.get(self.site.get_absolute_url())
+        response = self.client.get(self.circuit.get_absolute_url())
         self.assertEqual(response.status_code, 200)
         return response
 

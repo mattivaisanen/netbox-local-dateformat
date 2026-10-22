@@ -1,7 +1,8 @@
 from django.test import TestCase, override_settings
-from django.utils import timezone
 
-from dcim.models import Site
+import datetime
+
+from circuits.models import Circuit, CircuitType, Provider
 from users.models import User
 
 
@@ -12,16 +13,19 @@ class PageTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_superuser('admin', 'admin@example.com', 'x')
-        cls.site = Site.objects.create(name='Site 1', slug='site-1')
+        provider = Provider.objects.create(name='Provider 1', slug='provider-1')
+        circuit_type = CircuitType.objects.create(name='Type 1', slug='type-1')
+        cls.circuit = Circuit.objects.create(
+            cid='C1', provider=provider, type=circuit_type, termination_date=datetime.date(2026, 10, 22),
+        )
 
     def setUp(self):
         self.client.force_login(self.user)
-        self.today = timezone.now().date()
+        self.today = datetime.date(2026, 10, 22)  # the circuit's end date
 
-    def test_site_detail_page(self):
-        response = self.client.get(self.site.get_absolute_url())
+    def test_circuit_detail_page(self):
+        response = self.client.get(self.circuit.get_absolute_url())
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.today.strftime('%d.%m.%Y'))
-        # The footer clock is the only ISO date left on the page.
-        page = response.content.decode().split('id="footer-stamp"')[0]
-        self.assertNotIn(self.today.isoformat(), page)
+        # Shown as text nowhere (the Clone link's URL keeps it ISO).
+        self.assertNotContains(response, f'>{self.today.isoformat()}<')

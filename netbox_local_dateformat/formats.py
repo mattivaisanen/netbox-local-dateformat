@@ -65,3 +65,42 @@ def get_date_format(request=None):
 def placeholder(fmt):
     """'d.m.Y' -> 'DD.MM.YYYY', for empty form fields."""
     return fmt.replace('d', 'DD').replace('m', 'MM').replace('Y', 'YYYY')
+
+
+# Formats without the year, for timestamps from the current year.
+_WITHOUT_YEAR = {
+    'd.m.Y': 'd.m.',
+    'Y-m-d': 'm-d',
+    'd/m/Y': 'd/m',
+    'm/d/Y': 'm/d',
+    'd-m-Y': 'd-m',
+    'Y/m/d': 'm/d',
+}
+
+
+def without_year(fmt):
+    if fmt in _WITHOUT_YEAR:
+        return _WITHOUT_YEAR[fmt]
+    # A custom format: drop the year and the separator next to it.
+    short = fmt.replace('Y', '').replace('y', '')
+    return short.strip(' -/') or fmt
+
+
+def timestamp_date_format(value, now):
+    """
+    The date part of a timestamp (a date and time), shortened:
+
+    - within the past week: the weekday, e.g. "Mon"
+    - earlier this year: no year, e.g. "22.10."
+    - otherwise the full format, e.g. "22.10.2025"
+
+    value and now must be in the same time zone. Plain dates (a circuit's
+    end date, for example) always use the full format.
+    """
+    fmt = get_date_format()
+    days_ago = (now.date() - value.date()).days
+    if 0 <= days_ago < 7:
+        return 'D'
+    if value.year == now.year:
+        return without_year(fmt)
+    return fmt

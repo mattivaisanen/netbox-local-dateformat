@@ -4,15 +4,18 @@ import zoneinfo
 from django import forms
 from django.template import Context, Template
 from django.test import SimpleTestCase, override_settings
-from django.utils import formats
+from django.utils import dateformat, formats, timezone
 
 from netbox.tables import columns
 from utilities.forms.widgets import DatePicker, DateTimePicker
 from utilities.templatetags.builtins import filters
 
+from netbox_local_dateformat.formats import timestamp_date_format, without_year
+
 UTC = zoneinfo.ZoneInfo('UTC')
 DATE = datetime.date(2026, 10, 22)
-DATETIME = datetime.datetime(2026, 10, 22, 14, 55, 7, tzinfo=UTC)
+# Older than this year, so timestamps show the full date (see TimestampTests).
+DATETIME = datetime.datetime(2020, 10, 22, 14, 55, 7, tzinfo=UTC)
 
 
 def render(template, **context):
@@ -33,13 +36,13 @@ class TemplateFilterTests(SimpleTestCase):
 
     def test_isodate_datetime(self):
         html = render('{% load helpers %}{{ d|isodate }}', d=DATETIME)
-        self.assertIn('>22.10.2026</span>', html)
+        self.assertIn('>22.10.2020</span>', html)
 
     def test_isodatetime(self):
         html = render('{% load helpers %}{{ d|isodatetime }}', d=DATETIME)
-        self.assertIn('22.10.2026', html)
+        self.assertIn('22.10.2020', html)
         self.assertIn('14:55:07', html)
-        self.assertNotIn('2026-10-22', html)
+        self.assertNotIn('2020-10-22', html)
 
     def test_isodatetime_spec(self):
         html = render('{% load helpers %}{{ d|isodatetime:"minutes" }}', d=DATETIME)
@@ -68,14 +71,14 @@ class TableColumnTests(SimpleTestCase):
         self.assertEqual(columns.DateColumn().render(DATE), '22.10.2026')
 
     def test_datetime_column(self):
-        self.assertEqual(columns.DateTimeColumn().render(DATETIME), '22.10.2026 14:55:07')
+        self.assertEqual(columns.DateTimeColumn().render(DATETIME), '22.10.2020 14:55:07')
 
     def test_datetime_column_timespec(self):
-        self.assertEqual(columns.DateTimeColumn(timespec='minutes').render(DATETIME), '22.10.2026 14:55')
+        self.assertEqual(columns.DateTimeColumn(timespec='minutes').render(DATETIME), '22.10.2020 14:55')
 
     @override_settings(TIME_ZONE='Europe/Helsinki')
     def test_datetime_column_uses_time_zone(self):
-        self.assertEqual(columns.DateTimeColumn().render(DATETIME), '22.10.2026 17:55:07')
+        self.assertEqual(columns.DateTimeColumn().render(DATETIME), '22.10.2020 17:55:07')
 
     def test_empty_values(self):
         self.assertIsNone(columns.DateColumn().render(None))
@@ -88,7 +91,40 @@ class TableColumnTests(SimpleTestCase):
     def test_exports_stay_iso(self):
         # CSV export uses value(), which the plugin leaves alone.
         self.assertEqual(columns.DateColumn().value(DATE), '2026-10-22')
-        self.assertEqual(columns.DateTimeColumn().value(DATETIME), '2026-10-22T14:55:07+00:00')
+        self.assertEqual(columns.DateTimeColumn().value(DATETIME), '2020-10-22T14:55:07+00:00')
+
+
+class TimestampTests(SimpleTestCase):
+    NOW = datetime.datetime(2026, 10, 22, 12, 0)
+
+    def fmt(self, value):
+        return timestamp_date_format(value, self.NOW)
+
+    def test_past_week_shows_weekday(self):
+        self.assertEqual(self.fmt(datetime.datetime(2026, 10, 22, 8, 0)), 'D')
+        self.assertEqual(self.fmt(datetime.datetime(2026, 10, 16, 8, 0)), 'D')
+
+    def test_this_year_drops_year(self):
+        self.assertEqual(self.fmt(datetime.datetime(2026, 10, 15, 8, 0)), 'd.m.')
+        self.assertEqual(self.fmt(datetime.datetime(2026, 12, 24, 8, 0)), 'd.m.')  # future, same year
+
+    def test_other_years_full(self):
+        self.assertEqual(self.fmt(datetime.datetime(2025, 10, 21, 8, 0)), 'd.m.Y')
+
+    def test_without_year(self):
+        self.assertEqual(without_year('Y-m-d'), 'm-d')
+        self.assertEqual(without_year('m/d/Y'), 'm/d')
+        self.assertEqual(without_year('j. n. Y'), 'j. n.')
+
+    @override_settings(TIME_ZONE='UTC')
+    def test_recent_timestamp_in_table(self):
+        value = timezone.now() - datetime.timedelta(days=1)
+        text = columns.DateTimeColumn().render(value)
+        self.assertTrue(text.startswith(dateformat.format(value, 'D') + ' '), text)
+
+    def test_plain_dates_keep_year(self):
+        today = timezone.now().date()
+        self.assertEqual(columns.DateColumn().render(today), today.strftime('%d.%m.%Y'))
 
 
 class DjangoDateFilterTests(SimpleTestCase):

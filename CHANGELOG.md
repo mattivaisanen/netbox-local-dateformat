@@ -9,3 +9,5 @@ New:
 - Each user picks their own format on the Preferences page; the default
   for everyone is set under Admin → System → Configuration. Both are saved
   in NetBox's existing settings, with no new tables or migrations.
+- Timestamps from the past week show the weekday, and timestamps from
+  earlier this year leave out the year.
