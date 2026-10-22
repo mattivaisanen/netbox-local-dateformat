@@ -1,11 +1,13 @@
 import datetime
 import zoneinfo
 
+from django import forms
 from django.template import Context, Template
 from django.test import SimpleTestCase, override_settings
 from django.utils import formats
 
 from netbox.tables import columns
+from utilities.forms.widgets import DatePicker, DateTimePicker
 from utilities.templatetags.builtins import filters
 
 UTC = zoneinfo.ZoneInfo('UTC')
@@ -94,3 +96,55 @@ class DjangoDateFilterTests(SimpleTestCase):
     def test_date_filter(self):
         self.assertEqual(render('{{ d|date }}', d=DATE), '22.10.2026')
         self.assertEqual(formats.get_format('SHORT_DATE_FORMAT'), 'd.m.Y')
+
+    def test_input_formats_unchanged(self):
+        # Parsing submitted dates must not depend on the display format.
+        self.assertIn('%Y-%m-%d', formats.get_format('DATE_INPUT_FORMATS'))
+
+    def test_custom_format(self):
+        with custom_format('Y/m/d'):
+            self.assertEqual(render('{{ d|date }}', d=DATE), '2026/10/22')
+
+    def test_explicit_format_argument_wins(self):
+        self.assertEqual(render('{{ d|date:"Y-m-d" }}', d=DATE), '2026-10-22')
+
+
+@override_settings(TIME_ZONE='UTC')
+class NowTagTests(SimpleTestCase):
+
+    def test_footer_clock(self):
+        text = render("{% now 'Y-m-d H:i:s T' %}")
+        self.assertRegex(text, r'^\d\d\.\d\d\.\d{4} \d\d:\d\d:\d\d UTC$')
+
+    def test_other_formats_unchanged(self):
+        self.assertRegex(render("{% now 'Y-m-d' %}"), r'^\d{4}-\d\d-\d\d$')
+
+
+class DatePickerTests(SimpleTestCase):
+
+    def test_date_picker(self):
+        html = DatePicker().render('d', DATE)
+        self.assertIn('value="2026-10-22"', html)  # submitted value stays ISO
+        self.assertIn('data-alt-input="true"', html)
+        self.assertIn('data-alt-format="d.m.Y"', html)
+        self.assertIn('data-date-format="Y-m-d"', html)
+        self.assertIn('placeholder="DD.MM.YYYY"', html)
+
+    def test_datetime_picker(self):
+        html = DateTimePicker().render('d', '2026-10-22 14:55:07')
+        self.assertIn('data-alt-format="d.m.Y H:i:S"', html)
+        self.assertIn('data-date-format="Y-m-d H:i:S"', html)
+
+    def test_custom_format(self):
+        with custom_format('m/d/Y'):
+            html = DatePicker().render('d', DATE)
+        self.assertIn('data-alt-format="m/d/Y"', html)
+        self.assertIn('placeholder="MM/DD/YYYY"', html)
+
+    def test_form_still_parses_iso(self):
+        class Form(forms.Form):
+            d = forms.DateField(widget=DatePicker())
+
+        form = Form(data={'d': '2026-10-22'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['d'], DATE)

@@ -5,6 +5,14 @@ the same conventions as mattivaisanen/netbox-change-approval.
 
 ## Rules
 
+- **Display only, database untouched:** dates change only in what users
+  see. Never write or convert stored dates, never change parsing, exports
+  or the API, and never add models or migrations: the database must move
+  to another NetBox (without this plugin) as is. Settings go in NetBox's
+  existing storage (user preferences, configuration revisions).
+- **Format choice:** each user picks their own (Preferences); the default
+  is set under Admin → System → Configuration. Applies everywhere dates
+  are shown, forms included.
 - **NetBox support:** only claim what CI tests. `min_version` in
   `LocalDateFormatConfig` is the oldest release in the CI matrix; the
   matrix has the oldest supported and the latest tested release. Keep the
