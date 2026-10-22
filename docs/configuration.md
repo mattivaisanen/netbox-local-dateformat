@@ -36,3 +36,10 @@ PLUGINS_CONFIG = {
     },
 }
 ```
+
+## Timestamps
+
+Timestamps (a date and a time) are shortened whatever the format: the
+weekday within the past week (`Thu 14:55:07`), no year earlier in the
+current year (`15.10. 14:55:07`). Plain dates always use the full format.
+There is no setting for this.

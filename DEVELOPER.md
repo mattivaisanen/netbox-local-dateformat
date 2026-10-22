@@ -19,6 +19,15 @@ the `LOCAL_DATE_FORMAT` system default, the `date_format` plugin setting,
 then `d.m.Y`. `user.config` and `get_config()` are cached per request, so
 this costs no queries per row.
 
+## Shorter timestamps
+
+`timestamp_date_format()` shortens the date part of a datetime (never a
+plain date): `D` (weekday) within the past 7 days, the user's format
+without the year (`without_year()`) earlier in the same year, the full
+format otherwise. Used by the `isodate`/`isodatetime` filters for
+datetimes and by `DateTimeColumn.render`. The hover title still shows
+NetBox's relative time.
+
 ## Where the settings live
 
 - **User preference:** `PluginConfig.user_preferences` points at

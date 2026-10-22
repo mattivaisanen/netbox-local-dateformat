@@ -12,7 +12,11 @@ the same conventions as mattivaisanen/netbox-change-approval.
   existing storage (user preferences, configuration revisions).
 - **Format choice:** each user picks their own (Preferences); the default
   is set under Admin → System → Configuration. Applies everywhere dates
-  are shown, forms included.
+  are shown, forms included. Timestamps are shortened (weekday for the
+  past week, no year this year); plain dates are not.
+- **Matti's NetBox:** Matti restarts it themselves. After pushing, pull
+  into ~/projects/netbox-local-dateformat on their machine and tell them
+  it's ready to restart. Keep test runs minimal (token cost).
 - **NetBox support:** only claim what CI tests. `min_version` in
   `LocalDateFormatConfig` is the oldest release in the CI matrix; the
   matrix has the oldest supported and the latest tested release. Keep the
