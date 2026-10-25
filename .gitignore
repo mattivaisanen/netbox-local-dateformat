@@ -7,3 +7,8 @@ dist/
 venv/
 .pytest_cache/
 .coverage
+
+# Claude Code
+CLAUDE.md
+CLAUDE.local.md
+.claude/

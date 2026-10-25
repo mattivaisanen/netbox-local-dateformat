@@ -1,4 +1,4 @@
-# Configuration reference
+# Configuration
 
 The date format a user sees is picked in this order:
 

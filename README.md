@@ -1,6 +1,6 @@
-# NetBox Local Date Format
+# netbox-local-dateformat
 
-A small NetBox plugin that shows dates in the web UI in each user's own
+A NetBox plugin that shows dates in the web UI in each user's own
 format, for example `22.10.2026 14:55` instead of ISO 8601
 (`2026-10-22 14:55`).
 
@@ -83,7 +83,7 @@ All settings are listed in [docs/configuration.md](docs/configuration.md).
 For netbox-docker, install it in a custom image (see the netbox-docker
 wiki on using plugins) and list it in `configuration/plugins.py`.
 
-### Upgrading
+## Upgrading
 
 `--force-reinstall --no-deps` makes pip fetch the latest code even if it
 thinks the installed version is current. Then restart NetBox and its
