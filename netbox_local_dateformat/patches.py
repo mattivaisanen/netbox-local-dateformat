@@ -202,7 +202,7 @@ def add_system_default():
         default='',
         description=_(
             'How dates are shown to users who haven\'t picked their own format '
-            '(Local date format plugin). Stored data stays ISO 8601.'
+            '(Local Date Format plugin). Stored data stays ISO 8601.'
         ),
         field=forms.ChoiceField,
         field_kwargs={'choices': (('', '---------'), *DATE_FORMATS)},

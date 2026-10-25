@@ -3,6 +3,7 @@
 ## Unreleased
 
 New:
+
 - Show dates in NetBox's web UI as `dd.mm.yyyy` instead of ISO 8601:
   lists, detail pages, changelog, journal, date pickers in forms and the
   footer clock. Stored data, CSV exports and the API stay ISO.

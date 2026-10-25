@@ -10,7 +10,7 @@ from netbox.plugins import PluginConfig
 
 class LocalDateFormatConfig(PluginConfig):
     name = 'netbox_local_dateformat'
-    verbose_name = 'Local date format'
+    verbose_name = 'Local Date Format'
     description = 'Show dates in the web UI in each user\'s own format.'
     version = '0.1.0'
     author = 'Matti'
