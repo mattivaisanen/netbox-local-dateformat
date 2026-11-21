@@ -68,6 +68,10 @@ class FormatChoiceTests(TestCase):
 
     def test_users_see_their_own_format(self):
         other = User.objects.create_user('other', 'other@example.com', 'x', is_superuser=True)
+        # A new user's config starts out as the very dict that holds NetBox's
+        # DEFAULT_USER_PREFERENCES, so set() on it would change the default for
+        # everyone (in this test and all later ones). Reload it first.
+        other.config.refresh_from_db()
         other.config.set(PREF, 'Y/m/d', commit=True)
         self.assertContains(self.page(), self.today.strftime('%d.%m.%Y'))
         self.client.force_login(other)
