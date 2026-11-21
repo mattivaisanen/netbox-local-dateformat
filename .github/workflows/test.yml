@@ -3,11 +3,18 @@ name: Test
 # Pull requests and manual runs only, to save CI minutes.
 on:
   pull_request:
+    paths-ignore: ['**.md', 'docs/**']
   workflow_dispatch:
+
+# A newer push to the same pull request cancels the older run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:

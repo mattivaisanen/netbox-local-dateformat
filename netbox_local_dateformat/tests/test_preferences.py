@@ -1,11 +1,11 @@
+import datetime
+
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from core.models import ConfigRevision
-import datetime
-
 from circuits.models import Circuit, CircuitType, Provider
+from core.models import ConfigRevision
 from netbox.config import clear_config
 from users.models import User
 

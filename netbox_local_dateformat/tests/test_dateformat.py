@@ -93,6 +93,13 @@ class TableColumnTests(SimpleTestCase):
         self.assertEqual(columns.DateColumn().value(DATE), '2026-10-22')
         self.assertEqual(columns.DateTimeColumn().value(DATETIME), '2020-10-22T14:55:07+00:00')
 
+    def test_patching_twice_keeps_netbox_original(self):
+        from netbox_local_dateformat import patches
+        patched = columns.DateColumn.render
+        patches.patch_table_columns()
+        self.assertIs(columns.DateColumn.render, patched)
+        self.assertIsNot(patched._nbldf_original, patched)
+
 
 class TimestampTests(SimpleTestCase):
     NOW = datetime.datetime(2026, 10, 22, 12, 0)

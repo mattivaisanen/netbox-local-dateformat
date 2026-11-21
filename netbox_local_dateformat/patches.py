@@ -84,6 +84,10 @@ def patch_template_filters():
 def patch_table_columns():
     from netbox.tables import columns
 
+    # Already patched (apply() ran before): keep the first originals.
+    if hasattr(columns.DateColumn.render, '_nbldf_original'):
+        return
+
     def date_render(self, value):
         return _date(value) if value else None
 
@@ -94,6 +98,8 @@ def patch_table_columns():
         return f"{_timestamp_date(value)} {value.time().isoformat(timespec=self.timespec)}"
 
     # render() only: value() is what CSV export uses, and it stays ISO.
+    date_render._nbldf_original = columns.DateColumn.render
+    datetime_render._nbldf_original = columns.DateTimeColumn.render
     columns.DateColumn.render = date_render
     columns.DateTimeColumn.render = datetime_render
 

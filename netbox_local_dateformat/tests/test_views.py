@@ -1,6 +1,6 @@
-from django.test import TestCase, override_settings
-
 import datetime
+
+from django.test import TestCase, override_settings
 
 from circuits.models import Circuit, CircuitType, Provider
 from users.models import User
