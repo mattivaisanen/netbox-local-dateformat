@@ -15,8 +15,11 @@ class LocalDateFormatConfig(PluginConfig):
     version = '0.1.0'
     author = 'Matti'
     base_url = 'local-dateformat'
-    # Only claim what CI tests (.github/workflows/test.yml).
+    # Only claim what CI tests (.github/workflows/test.yml). The patches
+    # replace NetBox internals and fail soft, so a newer minor release is
+    # refused instead of silently showing ISO dates again.
     min_version = '4.7.0'
+    max_version = '4.7.99'
     default_settings = {'date_format': 'd.m.Y'}
     # Loaded from preferences.preferences (NetBox's default resource path).
     user_preferences = 'preferences.preferences'

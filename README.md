@@ -49,8 +49,9 @@ plugin ignores both.
 
 ## Requirements
 
-- NetBox **4.7** or later. Tested with NetBox 4.7.0 and 4.7.3; NetBox
-  refuses to load the plugin on older versions.
+- NetBox **4.7**. Tested with NetBox 4.7.0 and 4.7.3; NetBox refuses to
+  load the plugin on older versions and on 4.8 or later, until a release
+  that has been tested with it.
 - No other plugins or Python packages.
 
 ## Installation

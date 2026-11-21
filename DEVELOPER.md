@@ -62,8 +62,12 @@ Each patch remembers the original function, so applying twice is safe.
 ## Keeping it working across NetBox releases
 
 The patched functions are NetBox internals, so a NetBox release can rename
-or change them. That is why `min_version` is the oldest release CI tests
-and the README only claims tested versions. When adding a new NetBox
+or change them. Most patches fail soft: if NetBox changes a template or
+function, dates quietly go back to ISO instead of raising an error. That is
+why `min_version` is the oldest release CI tests, `max_version` (`4.7.99`)
+stops the plugin loading on an untested minor release, and the README only
+claims tested versions. Raise `max_version` only together with a CI job on
+that release. When adding a new NetBox
 release to the CI matrix, compare the new release's versions of the
 functions above with the replacements in `__init__.py`.
 

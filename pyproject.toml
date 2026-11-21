@@ -8,11 +8,31 @@ version = "0.1.0"
 description = "Show dates in the web UI in each user's own format."
 requires-python = ">=3.10"
 license = "Apache-2.0"
+license-files = ["LICENSE"]
 readme = "README.md"
 authors = [{ name = "Matti" }]
 # No runtime dependencies: NetBox provides Django. NetBox versions are
-# enforced at runtime by min_version in netbox_local_dateformat/__init__.py.
+# enforced at runtime by min_version and max_version in netbox_local_dateformat/__init__.py.
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/mattivaisanen/netbox-local-dateformat"
+Documentation = "https://github.com/mattivaisanen/netbox-local-dateformat/tree/master/docs"
+Changelog = "https://github.com/mattivaisanen/netbox-local-dateformat/blob/master/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 include = ["netbox_local_dateformat*"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.ruff.lint.isort]
+# NetBox's own apps get their own block, after Django and before this plugin.
+known-first-party = ["netbox_local_dateformat"]
+section-order = ["future", "standard-library", "third-party", "netbox", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+netbox = ["circuits", "core", "dcim", "extras", "ipam", "netbox", "users", "utilities"]

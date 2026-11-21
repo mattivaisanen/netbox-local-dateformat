@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Fixed:
+
+- NetBox 4.8 and later refuse to load the plugin until it has been tested
+  with them, instead of quietly showing ISO dates again after an upgrade.
+
+## 0.1.0 (2026-11-21)
+
 New:
 
 - Show dates in NetBox's web UI as `dd.mm.yyyy` instead of ISO 8601:
